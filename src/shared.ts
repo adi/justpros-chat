@@ -23,6 +23,10 @@ export type Message =
 	| {
 			type: "all";
 			messages: ChatMessage[];
+	  }
+	| {
+			type: "notification";
+			message: string;
 	  };
 
 export const names = [

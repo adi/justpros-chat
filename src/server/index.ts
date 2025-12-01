@@ -16,6 +16,31 @@ export class Chat extends Server<Env> {
 		this.broadcast(JSON.stringify(message), exclude);
 	}
 
+	// Handle HTTP requests (for server-to-server broadcast)
+	async onRequest(request: Request): Promise<Response> {
+		const url = new URL(request.url);
+
+		// POST /broadcast - broadcast a notification to all connected clients
+		if (request.method === "POST" && url.pathname.endsWith("/broadcast")) {
+			try {
+				const body = (await request.json()) as { message?: string };
+				const notificationMessage = body.message || "new_message";
+
+				// Broadcast notification to all connected WebSocket clients
+				this.broadcastMessage({
+					type: "notification",
+					message: notificationMessage,
+				});
+
+				return new Response("OK", { status: 200 });
+			} catch {
+				return new Response("Bad Request", { status: 400 });
+			}
+		}
+
+		return new Response("Not Found", { status: 404 });
+	}
+
 	onStart() {
 		// this is where you can initialize things that need to be done before the server starts
 		// for example, load previous messages from a database or a service
